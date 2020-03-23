@@ -11,6 +11,12 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
 
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
+
     def load(self):
         """Load a program into memory."""
 
