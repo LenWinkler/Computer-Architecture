@@ -42,7 +42,7 @@ class CPU:
                         continue
                     # otherwise, push line[0] to self.ram[address] and address += 1
                     else:
-                        self.ram[address] = int(bin(int(split_line[0].strip(), 2)), 2)
+                        self.ram[address] = int(split_line[0].strip(), 2)
                         address += 1 
         except FileNotFoundError:
             print('File not found')
@@ -100,6 +100,7 @@ class CPU:
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
+        MUL = 0b10100010
 
         while running:
             IR = self.ram[self.pc]
@@ -112,6 +113,9 @@ class CPU:
             elif IR == PRN:
                 print('PRN', self.reg[operand_a])
                 self.pc += 2
+            elif IR == MUL:
+                self.alu('MUL', operand_a, operand_b)
+                self.pc += 3
             elif IR == HLT:
                 self.pc = 0
                 running = False
