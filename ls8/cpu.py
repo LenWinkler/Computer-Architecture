@@ -10,6 +10,8 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.sp = 0xF4
+        self.reg[7] = self.sp
 
     def ram_read(self, address):
         return self.ram[address]
@@ -23,6 +25,7 @@ class CPU:
         address = 0
         program = None
         
+        # check for file arg
         if len(sys.argv) > 1:
             program = sys.argv[1]
         else:
@@ -32,7 +35,6 @@ class CPU:
         # open the file
         try:
             with open(program) as p:
-
                 # for each line in the file
                 for line in p:
                 # split on ' ' and check first element
@@ -47,22 +49,6 @@ class CPU:
         except FileNotFoundError:
             print('File not found')
             sys.exit(2)
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -101,6 +87,8 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         while running:
             IR = self.ram[self.pc]
@@ -119,6 +107,14 @@ class CPU:
             elif IR == HLT:
                 self.pc = 0
                 running = False
+            elif IR == PUSH:
+                self.sp -= 1
+                self.ram[self.sp] = self.reg[operand_a]
+                self.pc += 2
+            elif IR == POP:
+                self.reg[operand_a] = self.ram[self.sp]
+                self.sp += 1
+                self.pc+= 2
             else:
                 print(f'Unknown command {IR}')
                 sys.exit(1)
