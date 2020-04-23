@@ -9,8 +9,11 @@ class CPU:
     LDI = 0b10000010
     PRN = 0b01000111
     MUL = 0b10100010
+    ADD = 0b10100000
     PUSH = 0b01000101
     POP = 0b01000110
+    CALL = 0b01010000
+    RET = 0b00010001
 
     def __init__(self):
         """Construct a new CPU."""
@@ -18,6 +21,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.sp = 7
+        self.flag = 0
 
     def ram_read(self, MAR):
         """Read from RAM"""
@@ -81,6 +85,12 @@ class CPU:
 
             if IR == self.HLT:
                 break
+            elif IR == self.CALL:
+                self.sp -= 1
+                self.ram_write(self.sp, self.pc + 2)
+                self.pc = self.reg[operand_a]
+            elif IR == self.RET:
+                self.pc = self.ram_read(self.sp)
             elif IR == self.LDI:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
@@ -89,6 +99,9 @@ class CPU:
                 self.pc += 2
             elif IR == self.MUL:
                 self.alu('MUL', operand_a, operand_b)
+                self.pc += 3
+            elif IR == self.ADD:
+                self.alu('ADD', operand_a, operand_b)
                 self.pc += 3
             elif IR == self.PUSH:
                 self.sp -= 1
