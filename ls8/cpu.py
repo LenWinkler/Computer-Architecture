@@ -14,6 +14,8 @@ class CPU:
     POP = 0b01000110
     CALL = 0b01010000
     RET = 0b00010001
+    CMP = 0b10100111
+    JMP = 0b01010100
 
     def __init__(self):
         """Construct a new CPU."""
@@ -21,7 +23,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.sp = 7
-        self.flag = 0
+        self.fl = 0b00000000
 
     def ram_read(self, MAR):
         """Read from RAM"""
@@ -50,6 +52,13 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == 'MUL':
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == 'CMP':
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = 0b00000010
+            else:
+                self.fl = 0b00000100
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -111,3 +120,7 @@ class CPU:
                 self.reg[operand_a] = self.ram_read(self.sp)
                 self.sp += 1
                 self.pc += 2
+            elif IR == self.CMP:
+                self.alu('CMP', operand_a, operand_b)
+            elif IR == self.JMP:
+                self.pc = self.reg[operand_a]
