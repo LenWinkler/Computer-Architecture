@@ -5,6 +5,7 @@ import sys
 class CPU:
     """Main CPU class."""
 
+    # OP_CODES
     HLT = 0b00000001
     LDI = 0b10000010
     PRN = 0b01000111
@@ -14,6 +15,10 @@ class CPU:
     POP = 0b01000110
     CALL = 0b01010000
     RET = 0b00010001
+    CMP = 0b10100111
+    JMP = 0b01010100
+    JEQ = 0b01010101
+    JNE = 0b01010110
 
     def __init__(self):
         """Construct a new CPU."""
@@ -21,7 +26,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.sp = 7
-        self.flag = 0
+        self.fl = 0b00000000
 
     def ram_read(self, MAR):
         """Read from RAM"""
@@ -50,6 +55,13 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == 'MUL':
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == 'CMP':
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = 0b00000010
+            else:
+                self.fl = 0b00000100
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -81,7 +93,7 @@ class CPU:
         while True:
             IR = self.ram[self.pc]
             operand_a = self.ram[self.pc + 1]
-            operand_b = self.ram[self.pc + 2]
+            operand_b = self.ram[self.pc + 2]  
 
             if IR == self.HLT:
                 break
@@ -111,3 +123,18 @@ class CPU:
                 self.reg[operand_a] = self.ram_read(self.sp)
                 self.sp += 1
                 self.pc += 2
+            elif IR == self.CMP:
+                self.alu('CMP', operand_a, operand_b)
+                self.pc += 3
+            elif IR == self.JMP:
+                self.pc = self.reg[operand_a]
+            elif IR == self.JEQ:
+                if bin(self.fl)[-1] == '1':
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif IR == self.JNE:
+                if bin(self.fl)[-1] != '1':
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
